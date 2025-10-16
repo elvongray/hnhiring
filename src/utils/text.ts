@@ -25,4 +25,3 @@ export const decodeHtmlEntities = (value: string): string =>
 
     return entityMap[entity.toLowerCase()] ?? match;
   });
-

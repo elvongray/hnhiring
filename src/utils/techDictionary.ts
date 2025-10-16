@@ -133,6 +133,16 @@ const RAW_TECH_KEYWORDS: readonly TechKeywordEntry[] = [
     aliases: ['laravel'],
   },
   {
+    label: 'Django',
+    category: 'backend',
+    aliases: ['django'],
+  },
+  {
+    label: 'FastAPI',
+    category: 'backend',
+    aliases: ['fastapi', 'fast api'],
+  },
+  {
     label: 'Ruby on Rails',
     category: 'backend',
     aliases: ['rails', 'ruby on rails', 'ror'],
@@ -200,4 +210,3 @@ export const extractTechKeywords = (text: string): string[] => {
 
   return Array.from(matches).sort((a, b) => a.localeCompare(b));
 };
-
