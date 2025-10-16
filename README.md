@@ -1,7 +1,5 @@
 # hnhiring
 
-_Search, filter, and track roles from Hacker News “Ask HN: Who is hiring?” threads._
-
 This project is an opinionated React (Vite) application that pulls monthly job postings through Algolia’s Hacker News Search API and turns them into a shareable, filterable job board. It is designed for GitHub Pages hosting and ships with a parsing pipeline, state management, and testing harness ready for feature work.
 
 ## Features
@@ -15,14 +13,14 @@ This project is an opinionated React (Vite) application that pulls monthly job p
 
 ## Architecture
 
-| Layer            | Technology / Notes |
-| ---------------- | ------------------ |
-| Build/runtime    | Vite + React 19 (TypeScript) |
-| State            | Zustand for app filters + TanStack Query for remote data |
-| Search           | Fuse.js for client-side fuzzy matches |
-| Styling          | Tailwind CSS (utility-first, dark-mode ready) |
-| Testing          | Vitest, @testing-library/react |
-| Hosting          | GitHub Pages (static bundle pushed to `gh-pages`) |
+| Layer         | Technology / Notes                                       |
+| ------------- | -------------------------------------------------------- |
+| Build/runtime | Vite + React 19 (TypeScript)                             |
+| State         | Zustand for app filters + TanStack Query for remote data |
+| Search        | Fuse.js for client-side fuzzy matches                    |
+| Styling       | Tailwind CSS (utility-first, dark-mode ready)            |
+| Testing       | Vitest, @testing-library/react                           |
+| Hosting       | GitHub Pages (static bundle pushed to `gh-pages`)        |
 
 ```
 src/
