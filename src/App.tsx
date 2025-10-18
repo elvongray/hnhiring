@@ -1,21 +1,71 @@
-const App = () => (
-  <div className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-slate-950 px-6 py-16 text-slate-200">
-    <div className="space-y-2 text-center">
-      <p className="text-sm font-medium uppercase tracking-[0.3em] text-emerald-300">
-        hnhiring
-      </p>
-      <h1 className="text-balance text-4xl font-semibold md:text-5xl">
-        Hacker News hiring tracker scaffolding ready to build.
-      </h1>
-      <p className="mx-auto max-w-2xl text-balance text-base text-slate-400 md:text-lg">
-        Tooling is in place—React, Tailwind, TanStack Query, Zustand, and Vitest.
-        We&apos;ll layer in data fetching, filtering, and persistence next.
-      </p>
-    </div>
-    <div className="rounded-full border border-white/10 px-4 py-2 text-sm text-slate-400 shadow-lg shadow-emerald-500/5 backdrop-blur">
-      Start iterating on the data layer and UI components in the next steps.
-    </div>
-  </div>
-);
+import { useEffect, useState } from 'react';
+import { AppShell } from './components/layout/AppShell.tsx';
+import { AppHeader } from './components/layout/AppHeader.tsx';
+import { Sidebar } from './components/sidebar/Sidebar.tsx';
+import { ViewTabs } from './components/navigation/ViewTabs.tsx';
+import { JobList } from './components/jobs/JobList.tsx';
+import { Badge } from './components/ui/Badge.tsx';
+import { useAppStore } from './store/useAppStore.ts';
+
+const viewDescriptions: Record<string, string> = {
+  all: 'Aggregated jobs curated from recent HN “Who is hiring?” threads.',
+  starred: 'Your saved opportunities stored locally to keep tabs on.',
+  applied: 'Roles you marked as applied to track follow-ups.',
+  notes: 'Posts where you left notes or reminders.',
+};
+
+const App = () => {
+  const view = useAppStore((state) => state.view);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    if (typeof window === 'undefined') {
+      return true;
+    }
+    return window.matchMedia('(min-width: 1024px)').matches;
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia('(min-width: 1024px)');
+    const syncSidebar = (event: MediaQueryList | MediaQueryListEvent) => {
+      setSidebarOpen(event.matches);
+    };
+
+    syncSidebar(mediaQuery);
+    mediaQuery.addEventListener('change', syncSidebar);
+    return () => mediaQuery.removeEventListener('change', syncSidebar);
+  }, []);
+
+  return (
+    <AppShell
+      header={
+        <AppHeader
+          onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
+          sidebarOpen={sidebarOpen}
+        />
+      }
+      sidebar={<Sidebar />}
+      sidebarOpen={sidebarOpen}
+      onSidebarClose={() => setSidebarOpen(false)}
+    >
+      <section className="flex h-full flex-col">
+        <div className="border-b border-default px-6 py-5">
+          <div className="flex items-center justify-between">
+            <ViewTabs />
+            <Badge tone="accent" className="hidden md:inline-flex">
+              Parsing beta
+            </Badge>
+          </div>
+          <p className="mt-4 text-sm text-secondary md:text-base">
+            {viewDescriptions[view] ?? viewDescriptions.all}
+          </p>
+        </div>
+        <JobList />
+      </section>
+    </AppShell>
+  );
+};
 
 export default App;
