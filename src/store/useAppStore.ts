@@ -1,6 +1,6 @@
 import { create, type StateCreator } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { FilterState, ViewMode, VisaPreference } from '../types/filters.ts';
+import type { FilterState, ViewMode } from '../types/filters.ts';
 
 export interface AppStoreState {
   selectedMonth: string | null;
