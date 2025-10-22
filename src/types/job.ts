@@ -22,7 +22,6 @@ export interface JobFlags {
 }
 
 export interface JobSourceMetadata {
-  commentId: string;
   storyId: number;
   objectId: string;
   storyTitle?: string | null;
@@ -32,7 +31,6 @@ export interface JobSourceMetadata {
 }
 
 export interface Job {
-  id: string;
   storyId: number;
   objectId: string;
   company?: string;

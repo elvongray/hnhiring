@@ -103,7 +103,6 @@ export const JobList = () => {
   });
 
   const listRef = useRef<HTMLDivElement | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const root = listRef.current;
@@ -112,35 +111,20 @@ export const JobList = () => {
     }
   }, [activeStory?.storyId]);
 
-  useEffect(() => {
-    const root = listRef.current;
-    const target = loadMoreRef.current;
-    if (!root || !target || !hasNextPage) {
-      return;
+  const handleLoadMore = () => {
+    if (!isFetchingNextPage) {
+      void fetchNextPage();
+    }
+  };
+
+  const commentHits = useMemo(() => {
+    const allHits = commentPages?.pages.flatMap((page) => page.hits) ?? [];
+    if (!activeStory) {
+      return allHits;
     }
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-        if (entry?.isIntersecting && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      },
-      {
-        root,
-        rootMargin: '200px',
-        threshold: 0.1,
-      }
-    );
-
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage, activeStory?.storyId]);
-
-  const commentHits = useMemo(
-    () => commentPages?.pages.flatMap((page) => page.hits) ?? [],
-    [commentPages]
-  );
+    return allHits.filter((hit) => hit.parent_id === activeStory.storyId);
+  }, [commentPages, activeStory]);
 
   const jobs = useMemo(
     () => commentHits.map((hit) => parseJobFromComment(hit)),
@@ -237,7 +221,7 @@ export const JobList = () => {
         ) : (
           jobs.map((job) => (
             <JobCard
-              key={job}
+              key={job.objectId}
               title={job.role ?? 'Role TBD'}
               company={job.company ?? 'Company confidential'}
               locations={
@@ -246,7 +230,7 @@ export const JobList = () => {
               workMode={[job.workMode, job.remoteOnly ? 'Remote only' : null]
                 .filter(Boolean)
                 .join(' · ')}
-              snippet={createSnippet(job.text)}
+              snippet={job.text}
               tags={job.tags.slice(0, 6)}
               salary={
                 job.salary?.raw ??
@@ -261,11 +245,24 @@ export const JobList = () => {
             />
           ))
         )}
-        <div ref={loadMoreRef} className="h-10" />
-        {hasNextPage && isFetchingNextPage && (
-          <p className="pb-6 text-center text-sm text-secondary">
-            Loading more roles…
-          </p>
+        {hasNextPage ? (
+          <div className="pb-6 pt-2 text-center">
+            <Button
+              variant="secondary"
+              onClick={handleLoadMore}
+              disabled={isFetchingNextPage}
+              className="px-5"
+            >
+              {isFetchingNextPage ? 'Loading more…' : 'Load more jobs'}
+            </Button>
+          </div>
+        ) : (
+          !isInitialLoading &&
+          jobs.length > 0 && (
+            <p className="pb-6 text-center text-xs uppercase tracking-[0.3em] text-secondary">
+              End of thread
+            </p>
+          )
         )}
       </div>
     </>
@@ -316,18 +313,6 @@ const ErrorState = ({
     </Button>
   </div>
 );
-
-const createSnippet = (text: string, length = 240): string => {
-  if (!text) {
-    return 'No description provided.';
-  }
-
-  const condensed = text.replace(/\s+/g, ' ').trim();
-  if (condensed.length <= length) {
-    return condensed;
-  }
-  return `${condensed.slice(0, length).trim()}…`;
-};
 
 const formatSalary = (
   min?: number,

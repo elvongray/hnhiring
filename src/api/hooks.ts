@@ -72,7 +72,7 @@ export interface UseHiringCommentsOptions
 export const useHiringComments = (
   storyId: number | null | undefined,
   {
-    hitsPerPage = 200,
+    hitsPerPage = 50,
     enabled = true,
     ...options
   }: UseHiringCommentsOptions = {}

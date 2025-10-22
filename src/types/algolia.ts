@@ -16,7 +16,7 @@ export interface AlgoliaStoryHit {
 }
 
 export interface AlgoliaCommentHit {
-  story_id: string;
+  story_id: number;
   objectID: string;
   parent_id: number | null;
   story_title: string | null;

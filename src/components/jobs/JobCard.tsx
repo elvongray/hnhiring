@@ -75,7 +75,6 @@ export const JobCard = ({
     <footer className="flex items-center justify-between">
       <div className="flex flex-wrap gap-2 text-xs uppercase tracking-wide text-secondary">
         <Badge tone="accent">HN Source</Badge>
-        <Badge tone="default">Parsing heuristics beta</Badge>
       </div>
       {href ? (
         <a

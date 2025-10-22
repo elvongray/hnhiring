@@ -376,7 +376,7 @@ export const parseJobFromComment = (hit: AlgoliaCommentHit): Job => {
   const salary = parseSalary(plainText);
   const techStack = extractTechKeywords(plainText);
 
-  const url = hit.url ?? `https://news.ycombinator.com/item?id=${hit.id}`;
+  const url = hit.url ?? `https://news.ycombinator.com/item?id=${hit.story_id}`;
 
   const tags = buildTags(
     techStack,
@@ -389,7 +389,6 @@ export const parseJobFromComment = (hit: AlgoliaCommentHit): Job => {
   );
 
   return {
-    id: hit.id,
     storyId: hit.story_id,
     objectId: hit.objectID,
     company: company || undefined,
@@ -408,7 +407,6 @@ export const parseJobFromComment = (hit: AlgoliaCommentHit): Job => {
     createdAt: hit.created_at,
     url,
     source: {
-      commentId: hit.id,
       storyId: hit.story_id,
       objectId: hit.objectID,
       storyTitle: hit.story_title ?? undefined,

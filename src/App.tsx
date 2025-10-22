@@ -4,7 +4,6 @@ import { AppHeader } from './components/layout/AppHeader.tsx';
 import { Sidebar } from './components/sidebar/Sidebar.tsx';
 import { ViewTabs } from './components/navigation/ViewTabs.tsx';
 import { JobList } from './components/jobs/JobList.tsx';
-import { Badge } from './components/ui/Badge.tsx';
 import { useAppStore } from './store/useAppStore.ts';
 
 const viewDescriptions: Record<string, string> = {
@@ -54,9 +53,6 @@ const App = () => {
         <div className="border-b border-default px-6 py-5">
           <div className="flex items-center justify-between">
             <ViewTabs />
-            <Badge tone="accent" className="hidden md:inline-flex">
-              Parsing beta
-            </Badge>
           </div>
           <p className="mt-4 text-sm text-secondary md:text-base">
             {viewDescriptions[view] ?? viewDescriptions.all}
