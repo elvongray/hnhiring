@@ -24,7 +24,10 @@ const buildUrl = (path: string, params: RequestParams): string => {
   return url.toString();
 };
 
-const fetchJson = async <T>(path: string, params: RequestParams): Promise<T> => {
+const fetchJson = async <T>(
+  path: string,
+  params: RequestParams
+): Promise<T> => {
   const response = await fetch(buildUrl(path, params), {
     headers: {
       Accept: 'application/json',
@@ -40,12 +43,12 @@ const fetchJson = async <T>(path: string, params: RequestParams): Promise<T> => 
 };
 
 export interface HiringStorySummary {
-  id: number;
+  storyId: number;
+  objectId: string;
   title: string;
   createdAt: string;
   createdAtEpoch: number;
   monthKey: string;
-  url: string | null;
   author: string;
   commentCount: number;
 }
@@ -63,19 +66,19 @@ const mapStoryHit = (hit: AlgoliaStoryHit): HiringStorySummary => {
   const monthKey = new Date(createdAt).toISOString().slice(0, 7);
 
   return {
-    id: hit.id,
+    storyId: hit.story_id,
+    objectId: hit.objectId,
     title: hit.title,
     createdAt,
     createdAtEpoch: hit.created_at_i,
     monthKey,
-    url: hit.url,
     author: hit.author,
     commentCount: hit.num_comments,
   };
 };
 
 export const fetchHiringStories = async (
-  limit = 24,
+  limit = 24
 ): Promise<HiringStorySummary[]> => {
   const data = await fetchJson<AlgoliaSearchResponse<AlgoliaStoryHit>>(
     '/search_by_date',
@@ -85,7 +88,7 @@ export const fetchHiringStories = async (
       hitsPerPage: Math.min(limit, 1000),
       page: 0,
       numericFilters: undefined,
-    },
+    }
   );
 
   const stories = data.hits
@@ -109,13 +112,13 @@ export const fetchLatestHiringStory = async (): Promise<HiringStorySummary> => {
 };
 
 export const fetchHiringMonthHistory = async (
-  months = 24,
+  months = 24
 ): Promise<HiringStorySummary[]> => fetchHiringStories(months);
 
 export const fetchHiringCommentsPage = async (
   storyId: number,
   page = 0,
-  hitsPerPage = 200,
+  hitsPerPage = 200
 ): Promise<HiringCommentPage> => {
   const data = await fetchJson<AlgoliaSearchResponse<AlgoliaCommentHit>>(
     '/search',
@@ -123,7 +126,7 @@ export const fetchHiringCommentsPage = async (
       tags: `comment,${COMMENT_TAG_PREFIX}${storyId}`,
       page,
       hitsPerPage: Math.min(hitsPerPage, 1000),
-    },
+    }
   );
 
   return {
@@ -137,7 +140,7 @@ export const fetchHiringCommentsPage = async (
 
 export const fetchAllHiringComments = async (
   storyId: number,
-  hitsPerPage = 200,
+  hitsPerPage = 200
 ): Promise<AlgoliaCommentHit[]> => {
   const allHits: AlgoliaCommentHit[] = [];
   let page = 0;

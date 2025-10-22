@@ -1,7 +1,7 @@
 import { Badge } from '../ui/Badge.tsx';
 import { FilterGroup } from './FilterGroup.tsx';
 import { Button } from '../ui/Button.tsx';
-import type { ChangeEvent } from 'react';
+import type { ChangeEvent, ComponentPropsWithoutRef } from 'react';
 import { useAppStore } from '../../store/useAppStore.ts';
 import { cn } from '../../lib/cn.ts';
 import type { ExperienceLevel, WorkMode } from '../../types/job.ts';
@@ -15,7 +15,9 @@ const experienceOptions: ExperienceLevel[] = [
   'manager',
 ];
 
-const Input = (props: JSX.IntrinsicElements['input']) => (
+type InputProps = ComponentPropsWithoutRef<'input'>;
+
+const Input = (props: InputProps) => (
   <input
     className="w-full rounded-2xl border border-default bg-surface-muted px-4 py-2 text-sm text-[color:var(--text-primary)] placeholder:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
     {...props}
@@ -46,7 +48,8 @@ export const Sidebar = () => {
   const filters = useAppStore((state) => state.filters);
   const updateFilters = useAppStore((state) => state.updateFilters);
   const resetFilters = useAppStore((state) => state.resetFilters);
-  const hasSalaryRange = filters.salaryMin !== null || filters.salaryMax !== null;
+  const hasSalaryRange =
+    filters.salaryMin !== null || filters.salaryMax !== null;
 
   return (
     <div className="flex h-full flex-col gap-6 rounded-3xl bg-surface p-6">
@@ -99,7 +102,9 @@ export const Sidebar = () => {
           <CheckboxRow
             label="Remote only"
             checked={filters.remoteOnly}
-            onChange={(event) => updateFilters({ remoteOnly: event.target.checked })}
+            onChange={(event) =>
+              updateFilters({ remoteOnly: event.target.checked })
+            }
           />
         </div>
       </FilterGroup>
@@ -114,7 +119,9 @@ export const Sidebar = () => {
                 type="button"
                 onClick={() =>
                   updateFilters((previous) => {
-                    const next = new Set<ExperienceLevel>(previous.experienceLevels);
+                    const next = new Set<ExperienceLevel>(
+                      previous.experienceLevels
+                    );
                     if (next.has(level)) {
                       next.delete(level);
                     } else {
@@ -127,7 +134,7 @@ export const Sidebar = () => {
                   'rounded-full border px-3 py-1 text-xs uppercase tracking-wide transition',
                   isActive
                     ? 'border-[color:var(--accent)] bg-[color:var(--accent)]/15 text-[color:var(--accent)]'
-                    : 'border-default text-secondary hover:border-[color:var(--accent)]/40 hover:text-[color:var(--accent)]',
+                    : 'border-default text-secondary hover:border-[color:var(--accent)]/40 hover:text-[color:var(--accent)]'
                 )}
               >
                 {level}
@@ -141,21 +148,31 @@ export const Sidebar = () => {
         <CheckboxRow
           label="Visa available"
           checked={filters.visa === 'yes'}
-          onChange={() => updateFilters({ visa: filters.visa === 'yes' ? 'any' : 'yes' })}
+          onChange={() =>
+            updateFilters({ visa: filters.visa === 'yes' ? 'any' : 'yes' })
+          }
         />
         <CheckboxRow
           label="Only with salary data"
           checked={hasSalaryRange}
           onChange={(event) =>
             updateFilters({
-              salaryMin: event.target.checked ? filters.salaryMin ?? 50_000 : null,
-              salaryMax: event.target.checked ? filters.salaryMax ?? null : null,
+              salaryMin: event.target.checked
+                ? filters.salaryMin ?? 50_000
+                : null,
+              salaryMax: event.target.checked
+                ? filters.salaryMax ?? null
+                : null,
             })
           }
         />
       </FilterGroup>
 
-      <Button variant="ghost" className="mt-auto self-start" onClick={resetFilters}>
+      <Button
+        variant="ghost"
+        className="mt-auto self-start"
+        onClick={resetFilters}
+      >
         Reset filters
       </Button>
     </div>

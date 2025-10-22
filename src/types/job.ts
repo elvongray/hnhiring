@@ -1,6 +1,10 @@
 export type WorkMode = 'onsite' | 'hybrid' | 'remote';
 
-export type EmploymentType = 'full-time' | 'part-time' | 'contract' | 'internship';
+export type EmploymentType =
+  | 'full-time'
+  | 'part-time'
+  | 'contract'
+  | 'internship';
 
 export type ExperienceLevel = 'junior' | 'mid' | 'senior' | 'lead' | 'manager';
 
@@ -20,6 +24,7 @@ export interface JobFlags {
 export interface JobSourceMetadata {
   commentId: string;
   storyId: number;
+  objectId: string;
   storyTitle?: string | null;
   storyUrl?: string | null;
   author: string;
@@ -28,6 +33,8 @@ export interface JobSourceMetadata {
 
 export interface Job {
   id: string;
+  storyId: number;
+  objectId: string;
   company?: string;
   role?: string;
   locations: string[];

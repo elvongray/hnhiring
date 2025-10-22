@@ -3,7 +3,8 @@ export interface AlgoliaHighlightResult {
 }
 
 export interface AlgoliaStoryHit {
-  id: number;
+  story_id: number;
+  objectId: string;
   created_at: string;
   created_at_i: number;
   title: string;
@@ -15,9 +16,9 @@ export interface AlgoliaStoryHit {
 }
 
 export interface AlgoliaCommentHit {
-  id: string;
+  story_id: string;
+  objectID: string;
   parent_id: number | null;
-  story_id: number;
   story_title: string | null;
   story_url: string | null;
   created_at: string;
@@ -40,4 +41,3 @@ export interface AlgoliaSearchResponse<T> {
   params: string;
   processingTimeMS: number;
 }
-

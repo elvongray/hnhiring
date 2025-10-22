@@ -1,4 +1,5 @@
 import {
+  type InfiniteData,
   type QueryKey,
   useInfiniteQuery,
   useQuery,
@@ -55,7 +56,13 @@ export const useHiringMonthHistory = (
 
 export interface UseHiringCommentsOptions
   extends Omit<
-    UseInfiniteQueryOptions<HiringCommentPage, Error>,
+    UseInfiniteQueryOptions<
+      HiringCommentPage,
+      Error,
+      InfiniteData<HiringCommentPage>,
+      QueryKey,
+      number
+    >,
     'queryKey' | 'queryFn' | 'initialPageParam' | 'getNextPageParam'
   > {
   hitsPerPage?: number;
@@ -69,8 +76,14 @@ export const useHiringComments = (
     enabled = true,
     ...options
   }: UseHiringCommentsOptions = {}
-): UseInfiniteQueryResult<HiringCommentPage, Error> =>
-  useInfiniteQuery({
+): UseInfiniteQueryResult<InfiniteData<HiringCommentPage>, Error> =>
+  useInfiniteQuery<
+    HiringCommentPage,
+    Error,
+    InfiniteData<HiringCommentPage>,
+    QueryKey,
+    number
+  >({
     queryKey: storyId
       ? commentsKey(storyId, hitsPerPage)
       : ['hiring', 'comments', 'disabled'],

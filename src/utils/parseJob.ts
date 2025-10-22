@@ -7,10 +7,7 @@ import type {
   WorkMode,
 } from '../types/job.ts';
 import { extractTechKeywords } from './techDictionary.ts';
-import {
-  decodeHtmlEntities,
-  normalizeWhitespace,
-} from './text.ts';
+import { decodeHtmlEntities, normalizeWhitespace } from './text.ts';
 
 const HEADER_DELIMITER = /[\u2013\u2014\u2012\u2010\-|•·]+/;
 const LOCATION_DELIMITER = /[,/|•·]|(?:\s+or\s+)|(?:\s+and\s+)/i;
@@ -71,7 +68,9 @@ const CURRENCY_FROM_SYMBOL: Record<string, string> = {
 };
 
 const sanitizeLine = (line: string): string =>
-  normalizeWhitespace(line.replace(/^[•\-\*\u2022]+\s*/, '').replace(/\s+[:|-]\s*$/, ''));
+  normalizeWhitespace(
+    line.replace(/^[•\-\*\u2022]+\s*/, '').replace(/\s+[:|-]\s*$/, '')
+  );
 
 export const htmlToPlainText = (html: string): string => {
   if (!html) {
@@ -124,10 +123,7 @@ const splitLocations = (value: string): string[] =>
     .map((part) => sanitizeLine(part))
     .filter(Boolean);
 
-const extractLocations = (
-  lines: string[],
-  initial: string[],
-): string[] => {
+const extractLocations = (lines: string[], initial: string[]): string[] => {
   const results: string[] = [];
   const seen = new Set<string>();
 
@@ -172,7 +168,10 @@ const extractLocations = (
   return results;
 };
 
-const inferWorkMode = (text: string, locations: string[]): {
+const inferWorkMode = (
+  text: string,
+  locations: string[]
+): {
   mode: WorkMode;
   remoteOnly: boolean;
 } => {
@@ -316,7 +315,7 @@ const buildTags = (
   employmentTypes: EmploymentType[],
   experience?: ExperienceLevel,
   timezone?: string,
-  visa?: boolean,
+  visa?: boolean
 ): string[] => {
   const tags = new Set<string>();
 
@@ -356,14 +355,20 @@ const DEFAULT_FLAGS = { starred: false, applied: false } as const;
 export const parseJobFromComment = (hit: AlgoliaCommentHit): Job => {
   const html = hit.comment_text ?? hit.text ?? '';
   const plainText = htmlToPlainText(html);
-  const lines = plainText.split('\n').map((line) => line.trim()).filter(Boolean);
+  const lines = plainText
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
 
   const { company, role, locationParts = [] } = parseHeader(lines[0] ?? '');
   const locations = extractLocations(lines, locationParts);
 
   const normalizedText = plainText.toLowerCase();
 
-  const { mode: workMode, remoteOnly } = inferWorkMode(normalizedText, locations);
+  const { mode: workMode, remoteOnly } = inferWorkMode(
+    normalizedText,
+    locations
+  );
   const employmentTypes = inferEmploymentTypes(normalizedText);
   const experienceLevel = inferExperienceLevel(normalizedText);
   const timezone = inferTimezone(plainText);
@@ -371,10 +376,7 @@ export const parseJobFromComment = (hit: AlgoliaCommentHit): Job => {
   const salary = parseSalary(plainText);
   const techStack = extractTechKeywords(plainText);
 
-  const url =
-    hit.url ??
-    (hit.id ? `https://news.ycombinator.com/item?id=${hit.id}` : undefined) ??
-    '';
+  const url = hit.url ?? `https://news.ycombinator.com/item?id=${hit.id}`;
 
   const tags = buildTags(
     techStack,
@@ -383,11 +385,13 @@ export const parseJobFromComment = (hit: AlgoliaCommentHit): Job => {
     employmentTypes,
     experienceLevel,
     timezone,
-    visa,
+    visa
   );
 
   return {
     id: hit.id,
+    storyId: hit.story_id,
+    objectId: hit.objectID,
     company: company || undefined,
     role: role || undefined,
     locations,
@@ -406,6 +410,7 @@ export const parseJobFromComment = (hit: AlgoliaCommentHit): Job => {
     source: {
       commentId: hit.id,
       storyId: hit.story_id,
+      objectId: hit.objectID,
       storyTitle: hit.story_title ?? undefined,
       storyUrl: hit.story_url ?? undefined,
       author: hit.author,
@@ -418,4 +423,3 @@ export const parseJobFromComment = (hit: AlgoliaCommentHit): Job => {
     },
   };
 };
-

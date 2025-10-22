@@ -1,7 +1,6 @@
 import { Bookmark, CheckCircle2, ExternalLink, StickyNote } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
 import { Badge } from '../ui/Badge.tsx';
-import { cn } from '../../lib/cn.ts';
 
 export interface JobCardProps {
   title: string;

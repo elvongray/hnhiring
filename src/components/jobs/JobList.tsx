@@ -1,9 +1,12 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { ChevronDown, RefreshCcw, Search } from 'lucide-react';
 import { JobCard } from './JobCard.tsx';
 import { Button } from '../ui/Button.tsx';
 import { useAppStore } from '../../store/useAppStore.ts';
+import { useHiringComments, useHiringMonthHistory } from '../../api/hooks.ts';
+import { parseJobFromComment } from '../../utils/parseJob.ts';
 import type { HiringStorySummary } from '../../api/algolia.ts';
+import { cn } from '../../lib/cn.ts';
 
 const generateFallbackMonths = (count: number): string[] => {
   const now = new Date();
@@ -19,31 +22,35 @@ const formatMonth = (month: string): string => {
   if (!year || !monthPart) {
     return month;
   }
-  return new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric' }).format(
-    new Date(Date.UTC(year, monthPart - 1, 1)),
-  );
+  return new Intl.DateTimeFormat('en', {
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(Date.UTC(year, monthPart - 1, 1)));
 };
 
-export interface JobListProps {
-  stories?: HiringStorySummary[];
-  isLoading?: boolean;
-}
-
-export const JobList = ({ stories, isLoading }: JobListProps) => {
+export const JobList = () => {
   const selectedMonth = useAppStore((state) => state.selectedMonth);
   const availableMonths = useAppStore((state) => state.availableMonths);
   const setSelectedMonth = useAppStore((state) => state.setSelectedMonth);
   const setAvailableMonths = useAppStore((state) => state.setAvailableMonths);
 
+  const {
+    data: monthStories,
+    isLoading: isLoadingMonths,
+    isError: isMonthError,
+    error: monthError,
+    refetch: refetchMonths,
+  } = useHiringMonthHistory(24);
+
   const storyMonths = useMemo(() => {
-    if (!stories || stories.length === 0) {
+    if (!monthStories || monthStories.length === 0) {
       return [] as string[];
     }
 
-    return Array.from(new Set(stories.map((story) => story.monthKey)));
-  }, [stories]);
+    return Array.from(new Set(monthStories.map((story) => story.monthKey)));
+  }, [monthStories]);
 
-  const fallbackMonths = useMemo(() => generateFallbackMonths(12), []);
+  const fallbackMonths = useMemo(() => generateFallbackMonths(24), []);
 
   const monthOptions = useMemo(() => {
     if (storyMonths.length > 0) {
@@ -56,10 +63,10 @@ export const JobList = ({ stories, isLoading }: JobListProps) => {
   }, [availableMonths, fallbackMonths, storyMonths]);
 
   useEffect(() => {
-    if (storyMonths.length > 0) {
-      setAvailableMonths(storyMonths);
+    if (monthOptions.length > 0) {
+      setAvailableMonths(monthOptions);
     }
-  }, [setAvailableMonths, storyMonths]);
+  }, [monthOptions, setAvailableMonths]);
 
   useEffect(() => {
     if (!selectedMonth && monthOptions.length > 0) {
@@ -69,13 +76,94 @@ export const JobList = ({ stories, isLoading }: JobListProps) => {
 
   const activeMonth = selectedMonth ?? monthOptions[0] ?? '';
 
+  const activeStory: HiringStorySummary | undefined = useMemo(() => {
+    if (!monthStories || monthStories.length === 0) {
+      return undefined;
+    }
+
+    return (
+      monthStories.find((story) => story.monthKey === activeMonth) ??
+      monthStories[0]
+    );
+  }, [activeMonth, monthStories]);
+
+  const {
+    data: commentPages,
+    isLoading: isLoadingComments,
+    isError: isCommentsError,
+    error: commentsError,
+    refetch: refetchComments,
+    fetchNextPage,
+    hasNextPage,
+    isFetching: isFetchingComments,
+    isFetchingNextPage,
+  } = useHiringComments(activeStory?.storyId ?? null, {
+    enabled: Boolean(activeStory),
+    hitsPerPage: 50,
+  });
+
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const root = listRef.current;
+    if (root) {
+      root.scrollTo({ top: 0 });
+    }
+  }, [activeStory?.storyId]);
+
+  useEffect(() => {
+    const root = listRef.current;
+    const target = loadMoreRef.current;
+    if (!root || !target || !hasNextPage) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry?.isIntersecting && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      {
+        root,
+        rootMargin: '200px',
+        threshold: 0.1,
+      }
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, activeStory?.storyId]);
+
+  const commentHits = useMemo(
+    () => commentPages?.pages.flatMap((page) => page.hits) ?? [],
+    [commentPages]
+  );
+
+  const jobs = useMemo(
+    () => commentHits.map((hit) => parseJobFromComment(hit)),
+    [commentHits]
+  );
+
+  const isInitialLoading =
+    isLoadingMonths || (!commentPages && isLoadingComments);
+  const totalJobs = jobs.length;
+
   return (
     <>
       <div className="flex flex-col gap-4 border-b border-default px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-col gap-2">
-          <h2 className="text-lg font-semibold">Open roles</h2>
+          <h2 className="text-lg font-semibold">
+            {activeStory ? activeStory.title : 'Who is hiring?'}
+          </h2>
           <p className="text-sm text-secondary">
-            Filtered roles from the latest whoishiring threads. Parsing in motion.
+            {isMonthError
+              ? monthError?.message ?? 'Unable to load thread history.'
+              : `Showing ${totalJobs} parsed postings from ${
+                  activeMonth ? formatMonth(activeMonth) : 'recent months'
+                }.`}
           </p>
         </div>
         <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
@@ -116,62 +204,73 @@ export const JobList = ({ stories, isLoading }: JobListProps) => {
               className="h-10 rounded-full px-3"
               aria-label="Refresh jobs from Algolia"
               title="Refresh jobs from Algolia"
+              onClick={() => refetchComments()}
+              disabled={!activeStory || isFetchingComments}
             >
-              <RefreshCcw className="h-4 w-4" aria-hidden="true" />
+              <RefreshCcw
+                className={cn(
+                  'h-4 w-4 transition',
+                  isFetchingComments ? 'animate-spin' : undefined
+                )}
+                aria-hidden="true"
+              />
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 space-y-4 overflow-y-auto px-6 py-6">
-        {isLoading ? (
+      <div ref={listRef} className="flex-1 space-y-4 overflow-y-auto px-6 py-6">
+        {isInitialLoading ? (
           <SkeletonList />
+        ) : isMonthError ? (
+          <ErrorState
+            message={monthError?.message ?? 'Failed to load hiring threads.'}
+            onRetry={() => refetchMonths()}
+          />
+        ) : isCommentsError ? (
+          <ErrorState
+            message={commentsError?.message ?? 'Failed to load job comments.'}
+            onRetry={() => refetchComments()}
+          />
+        ) : jobs.length === 0 ? (
+          <EmptyState />
         ) : (
-          placeholderJobs.map((job) => <JobCard key={job.title} {...job} />)
+          jobs.map((job) => (
+            <JobCard
+              key={job}
+              title={job.role ?? 'Role TBD'}
+              company={job.company ?? 'Company confidential'}
+              locations={
+                job.locations.length > 0 ? job.locations : ['Location TBD']
+              }
+              workMode={[job.workMode, job.remoteOnly ? 'Remote only' : null]
+                .filter(Boolean)
+                .join(' · ')}
+              snippet={createSnippet(job.text)}
+              tags={job.tags.slice(0, 6)}
+              salary={
+                job.salary?.raw ??
+                formatSalary(
+                  job.salary?.min,
+                  job.salary?.max,
+                  job.salary?.currency
+                )
+              }
+              posted={formatDate(job.createdAt)}
+              href={job.url}
+            />
+          ))
+        )}
+        <div ref={loadMoreRef} className="h-10" />
+        {hasNextPage && isFetchingNextPage && (
+          <p className="pb-6 text-center text-sm text-secondary">
+            Loading more roles…
+          </p>
         )}
       </div>
     </>
   );
 };
-
-const placeholderJobs = [
-  {
-    title: 'Senior React Engineer',
-    company: 'Acme Systems',
-    locations: ['Berlin', 'Remote EU'],
-    workMode: 'Remote · Hybrid',
-    snippet:
-      'We are building the next generation of observability tooling for data-intensive teams. Work closely with product, design, and platform to deliver thoughtful experiences.',
-    tags: ['TypeScript', 'React', 'Tailwind', 'AWS'],
-    salary: '$140k – $170k + equity',
-    posted: '3 days ago',
-    href: 'https://news.ycombinator.com/item?id=12345',
-  },
-  {
-    title: 'Rust Backend Engineer',
-    company: 'Signal Forge',
-    locations: ['Toronto', 'Remote NA'],
-    workMode: 'Remote',
-    snippet:
-      'Join a small team designing privacy-first messaging infrastructure securing millions of conversations. You will own high-impact projects end-to-end.',
-    tags: ['Rust', 'PostgreSQL', 'Kubernetes', 'Grafana'],
-    salary: 'CA$160k – CA$190k',
-    posted: '5 days ago',
-    href: 'https://news.ycombinator.com/item?id=12346',
-  },
-  {
-    title: 'Product Designer',
-    company: 'Linear Labs',
-    locations: ['New York'],
-    workMode: 'Onsite',
-    snippet:
-      'We obsess over details to deliver a world-class issue tracking experience. Looking for a product-minded designer excited about systems thinking and prototyping.',
-    tags: ['Figma', 'Design systems'],
-    salary: '$120k – $150k',
-    posted: '1 week ago',
-    href: 'https://news.ycombinator.com/item?id=12347',
-  },
-];
 
 const SkeletonList = () => (
   <div className="space-y-4">
@@ -191,3 +290,81 @@ const SkeletonList = () => (
     ))}
   </div>
 );
+
+const EmptyState = () => (
+  <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-default bg-surface/40 px-8 py-16 text-center">
+    <p className="text-base font-semibold">No jobs parsed yet</p>
+    <p className="mt-2 max-w-md text-sm text-secondary">
+      Once the latest “Ask HN: Who is hiring?” thread loads, parsed job posts
+      will appear here. Try refreshing the thread or selecting a different
+      month.
+    </p>
+  </div>
+);
+
+const ErrorState = ({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry: () => void;
+}) => (
+  <div className="flex flex-col items-center justify-center gap-4 rounded-3xl border border-[color:var(--accent)]/40 bg-[color:var(--accent)]/5 px-8 py-12 text-center text-secondary">
+    <p className="text-sm">{message}</p>
+    <Button variant="secondary" onClick={onRetry} className="px-5">
+      Try again
+    </Button>
+  </div>
+);
+
+const createSnippet = (text: string, length = 240): string => {
+  if (!text) {
+    return 'No description provided.';
+  }
+
+  const condensed = text.replace(/\s+/g, ' ').trim();
+  if (condensed.length <= length) {
+    return condensed;
+  }
+  return `${condensed.slice(0, length).trim()}…`;
+};
+
+const formatSalary = (
+  min?: number,
+  max?: number,
+  currency?: string
+): string | undefined => {
+  if (!min && !max) {
+    return undefined;
+  }
+
+  const formatter = new Intl.NumberFormat('en', {
+    style: 'currency',
+    currency: currency ?? 'USD',
+    maximumFractionDigits: 0,
+  });
+
+  if (min && max && min !== max) {
+    return `${formatter.format(min)} – ${formatter.format(max)}`;
+  }
+
+  const value = max ?? min ?? 0;
+  return formatter.format(value);
+};
+
+const formatDate = (value: string | undefined): string | undefined => {
+  if (!value) {
+    return undefined;
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return undefined;
+  }
+
+  return new Intl.DateTimeFormat('en', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date);
+};
