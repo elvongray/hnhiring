@@ -9,7 +9,6 @@ export interface JobCardProps {
   workMode: string;
   snippet: string;
   tags?: string[];
-  salary?: string;
   posted?: string;
   actions?: ReactNode;
   href?: string;
@@ -22,7 +21,6 @@ export const JobCard = ({
   workMode,
   snippet,
   tags,
-  salary,
   posted,
   actions,
   href,
@@ -37,12 +35,6 @@ export const JobCard = ({
           <span>{locations.join(' · ') || 'Location TBD'}</span>
           <span aria-hidden>•</span>
           <span>{workMode}</span>
-          {salary ? (
-            <>
-              <span aria-hidden>•</span>
-              <span>{salary}</span>
-            </>
-          ) : null}
           {posted ? (
             <>
               <span aria-hidden>•</span>

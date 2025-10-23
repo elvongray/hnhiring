@@ -5,6 +5,7 @@ import { Button } from '../ui/Button.tsx';
 import { useAppStore } from '../../store/useAppStore.ts';
 import { useHiringComments, useHiringMonthHistory } from '../../api/hooks.ts';
 import { parseJobFromComment } from '../../utils/parseJob.ts';
+import { filterJobs } from '../../utils/filterJobs.ts';
 import type { HiringStorySummary } from '../../api/algolia.ts';
 import { cn } from '../../lib/cn.ts';
 
@@ -33,6 +34,7 @@ export const JobList = () => {
   const availableMonths = useAppStore((state) => state.availableMonths);
   const setSelectedMonth = useAppStore((state) => state.setSelectedMonth);
   const setAvailableMonths = useAppStore((state) => state.setAvailableMonths);
+  const filters = useAppStore((state) => state.filters);
 
   const {
     data: monthStories,
@@ -131,9 +133,33 @@ export const JobList = () => {
     [commentHits]
   );
 
+  const filteredJobs = useMemo(
+    () => filterJobs(jobs, filters),
+    [jobs, filters]
+  );
+
+  const hasActiveFilters = useMemo(() => {
+    return Boolean(
+      filters.query ||
+        filters.company ||
+        filters.locations.length > 0 ||
+        filters.remoteModes.length > 0 ||
+        filters.remoteOnly ||
+        filters.timezone ||
+        filters.visa !== 'any' ||
+        filters.employmentTypes.length > 0 ||
+        filters.experienceLevels.length > 0 ||
+        filters.tech.length > 0 ||
+        filters.salaryMin !== null ||
+        filters.salaryMax !== null ||
+        filters.sort !== 'relevance'
+    );
+  }, [filters]);
+
   const isInitialLoading =
     isLoadingMonths || (!commentPages && isLoadingComments);
-  const totalJobs = jobs.length;
+  const totalJobs = filteredJobs.length;
+  const unfilteredJobs = jobs.length;
 
   return (
     <>
@@ -145,7 +171,11 @@ export const JobList = () => {
           <p className="text-sm text-secondary">
             {isMonthError
               ? monthError?.message ?? 'Unable to load thread history.'
-              : `Showing ${totalJobs} parsed postings from ${
+              : `Showing ${totalJobs}${
+                  hasActiveFilters && unfilteredJobs !== totalJobs
+                    ? ` of ${unfilteredJobs}`
+                    : ''
+                } parsed postings from ${
                   activeMonth ? formatMonth(activeMonth) : 'recent months'
                 }.`}
           </p>
@@ -216,10 +246,10 @@ export const JobList = () => {
             message={commentsError?.message ?? 'Failed to load job comments.'}
             onRetry={() => refetchComments()}
           />
-        ) : jobs.length === 0 ? (
-          <EmptyState />
+        ) : filteredJobs.length === 0 ? (
+          <EmptyState hasActiveFilters={hasActiveFilters} />
         ) : (
-          jobs.map((job) => (
+          filteredJobs.map((job) => (
             <JobCard
               key={job.objectId}
               title={job.role ?? 'Role TBD'}
@@ -232,14 +262,6 @@ export const JobList = () => {
                 .join(' · ')}
               snippet={job.text}
               tags={job.tags.slice(0, 6)}
-              salary={
-                job.salary?.raw ??
-                formatSalary(
-                  job.salary?.min,
-                  job.salary?.max,
-                  job.salary?.currency
-                )
-              }
               posted={formatDate(job.createdAt)}
               href={job.url}
             />
@@ -258,7 +280,7 @@ export const JobList = () => {
           </div>
         ) : (
           !isInitialLoading &&
-          jobs.length > 0 && (
+          filteredJobs.length > 0 && (
             <p className="pb-6 text-center text-xs uppercase tracking-[0.3em] text-secondary">
               End of thread
             </p>
@@ -288,14 +310,22 @@ const SkeletonList = () => (
   </div>
 );
 
-const EmptyState = () => (
+const EmptyState = ({ hasActiveFilters }: { hasActiveFilters: boolean }) => (
   <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-default bg-surface/40 px-8 py-16 text-center">
-    <p className="text-base font-semibold">No jobs parsed yet</p>
-    <p className="mt-2 max-w-md text-sm text-secondary">
-      Once the latest “Ask HN: Who is hiring?” thread loads, parsed job posts
-      will appear here. Try refreshing the thread or selecting a different
-      month.
+    <p className="text-base font-semibold">
+      {hasActiveFilters ? 'No matches found' : 'No jobs parsed yet'}
     </p>
+    {hasActiveFilters ? (
+      <p className="mt-2 max-w-md text-sm text-secondary">
+        Try adjusting or clearing filters to broaden your search.
+      </p>
+    ) : (
+      <p className="mt-2 max-w-md text-sm text-secondary">
+        Once the latest “Ask HN: Who is hiring?” thread loads, parsed job posts
+        will appear here. Try refreshing the thread or selecting a different
+        month.
+      </p>
+    )}
   </div>
 );
 

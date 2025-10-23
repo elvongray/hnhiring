@@ -1,4 +1,4 @@
-import { Filter } from 'lucide-react';
+import { Filter, ExternalLink } from 'lucide-react';
 import { ThemeToggle } from '../ui/ThemeToggle.tsx';
 import { Button } from '../ui/Button.tsx';
 import { cn } from '../../lib/cn.ts';
@@ -49,9 +49,15 @@ export const AppHeader = ({
           <Filter className="h-4 w-4" />
           {filterLabel}
         </Button>
-        <Button variant="secondary" className="hidden sm:inline-flex">
+        <a
+          href="https://github.com/elvongray/hnhiring"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-2 rounded-full border border-transparent px-3 py-2 text-sm text-secondary transition hover:border-[color:var(--accent)]/40 hover:text-[color:var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        >
           View GitHub
-        </Button>
+          <ExternalLink className="h-4 w-4" />
+        </a>
         <ThemeToggle />
       </div>
     </header>

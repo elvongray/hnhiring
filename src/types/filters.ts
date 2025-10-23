@@ -34,13 +34,17 @@ export interface PaginationState {
 export interface FilterQueryParams {
   month?: string;
   query?: string;
-  location?: string;
-  remote?: 'true' | 'false';
-  experience?: ExperienceLevel;
+  company?: string;
+  locations?: string;
+  modes?: string;
+  remoteOnly?: '1';
+  timezone?: string;
+  visa?: Exclude<VisaPreference, 'any'>;
+  employment?: string;
+  experience?: string;
   tech?: string;
-  page?: string;
+  salaryMin?: string;
+  salaryMax?: string;
   view?: ViewMode;
   sort?: SortOrder;
-  visa?: Exclude<VisaPreference, 'any'>;
 }
-

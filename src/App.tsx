@@ -5,6 +5,7 @@ import { Sidebar } from './components/sidebar/Sidebar.tsx';
 import { ViewTabs } from './components/navigation/ViewTabs.tsx';
 import { JobList } from './components/jobs/JobList.tsx';
 import { useAppStore } from './store/useAppStore.ts';
+import { useFilterUrlSync } from './hooks/useFilterUrlSync.ts';
 
 const viewDescriptions: Record<string, string> = {
   all: 'Aggregated jobs curated from recent HN “Who is hiring?” threads.',
@@ -15,6 +16,7 @@ const viewDescriptions: Record<string, string> = {
 
 const App = () => {
   const view = useAppStore((state) => state.view);
+  useFilterUrlSync();
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     if (typeof window === 'undefined') {
       return true;

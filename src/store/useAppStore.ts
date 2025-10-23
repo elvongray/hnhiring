@@ -21,7 +21,7 @@ type PersistedAppState = Pick<
   'selectedMonth' | 'filters' | 'view'
 >;
 
-const createDefaultFilters = (): FilterState => ({
+export const createDefaultFilters = (): FilterState => ({
   query: '',
   company: null,
   locations: [],
