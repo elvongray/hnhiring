@@ -67,6 +67,20 @@ const CURRENCY_FROM_SYMBOL: Record<string, string> = {
   '£': 'GBP',
 };
 
+const CONTACT_EMAIL_PATTERN = /\b[A-Z0-9._%+-]+@([A-Z0-9.-]+\.[A-Z]{2,})\b/gi;
+const WEBSITE_PATTERN =
+  /\b(?:https?:\/\/|www\.)[A-Z0-9._%+-]+(?:\.[A-Z0-9._%+-]+)+[^\s]*\b/gi;
+const GENERIC_SUBDOMAIN_PREFIXES = new Set([
+  'jobs',
+  'careers',
+  'work',
+  'hire',
+  'apply',
+  'team',
+  'info',
+  'contact',
+]);
+
 const sanitizeLine = (line: string): string =>
   normalizeWhitespace(
     line.replace(/^[•\-\*\u2022]+\s*/, '').replace(/\s+[:|-]\s*$/, '')
@@ -94,19 +108,33 @@ export const htmlToPlainText = (html: string): string => {
     .join('\n');
 };
 
-const parseHeader = (firstLine: string) => {
+const parseHeader = (
+  firstLine: string
+): {
+  company?: string;
+  role?: string;
+  locationParts: string[];
+  hasDelimiter: boolean;
+} => {
   const cleaned = sanitizeLine(firstLine);
   if (!cleaned) {
-    return {};
+    return { locationParts: [], hasDelimiter: false };
   }
+
+  const hasDelimiter = HEADER_DELIMITER.test(cleaned);
 
   const parts = cleaned
     .split(HEADER_DELIMITER)
     .map((part) => sanitizeLine(part))
     .filter(Boolean);
 
-  if (parts.length === 0) {
-    return {};
+  if (!hasDelimiter || parts.length === 0) {
+    const [role] = parts;
+    return {
+      role,
+      locationParts: [],
+      hasDelimiter: false,
+    };
   }
 
   const [company, role, ...locationParts] = parts;
@@ -114,6 +142,7 @@ const parseHeader = (firstLine: string) => {
     company,
     role,
     locationParts,
+    hasDelimiter: true,
   };
 };
 
@@ -166,6 +195,75 @@ const extractLocations = (lines: string[], initial: string[]): string[] => {
   }
 
   return results;
+};
+
+const extractCompanyFromDomain = (value: string): string | undefined => {
+  if (!value) {
+    return undefined;
+  }
+
+  const normalized = value
+    .trim()
+    .replace(/^mailto:/i, '')
+    .replace(/^https?:\/\//i, '')
+    .replace(/^www\./i, '')
+    .split(/[/?#]/)[0];
+
+  if (!normalized) {
+    return undefined;
+  }
+
+  const segments = normalized.split('.').filter(Boolean);
+  if (segments.length === 0) {
+    return undefined;
+  }
+
+  while (
+    segments.length > 1 &&
+    GENERIC_SUBDOMAIN_PREFIXES.has(segments[0].toLowerCase())
+  ) {
+    segments.shift();
+  }
+
+  const candidate = segments[0];
+  if (!candidate || candidate.length < 2) {
+    return undefined;
+  }
+
+  const words = candidate
+    .split(/[-_]/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1));
+
+  if (words.length === 0) {
+    return undefined;
+  }
+
+  return words.join(' ');
+};
+
+const inferCompanyFromBody = (text: string): string | undefined => {
+  if (!text) {
+    return undefined;
+  }
+
+  for (const match of text.matchAll(CONTACT_EMAIL_PATTERN)) {
+    const [, domain] = match;
+    const company = extractCompanyFromDomain(domain);
+    if (company) {
+      return company;
+    }
+  }
+
+  for (const match of text.matchAll(WEBSITE_PATTERN)) {
+    const [url] = match;
+    const company = extractCompanyFromDomain(url);
+    if (company) {
+      return company;
+    }
+  }
+
+  return undefined;
 };
 
 const inferWorkMode = (
@@ -360,7 +458,12 @@ export const parseJobFromComment = (hit: AlgoliaCommentHit): Job => {
     .map((line) => line.trim())
     .filter(Boolean);
 
-  const { company, role, locationParts = [] } = parseHeader(lines[0] ?? '');
+  const {
+    company: headerCompany,
+    role,
+    locationParts = [],
+    hasDelimiter,
+  } = parseHeader(lines[0] ?? '');
   const locations = extractLocations(lines, locationParts);
 
   const normalizedText = plainText.toLowerCase();
@@ -377,6 +480,11 @@ export const parseJobFromComment = (hit: AlgoliaCommentHit): Job => {
   const techStack = extractTechKeywords(plainText);
 
   const url = hit.url ?? `https://news.ycombinator.com/item?id=${hit.objectID}`;
+  const fallbackCompany =
+    !headerCompany && !hasDelimiter
+      ? inferCompanyFromBody(plainText)
+      : undefined;
+  const company = headerCompany ?? fallbackCompany ?? undefined;
 
   const tags = buildTags(
     techStack,
@@ -391,7 +499,7 @@ export const parseJobFromComment = (hit: AlgoliaCommentHit): Job => {
   return {
     storyId: hit.story_id,
     objectId: hit.objectID,
-    company: company || undefined,
+    company,
     role: role || undefined,
     locations,
     workMode,
