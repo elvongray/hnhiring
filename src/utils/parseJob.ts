@@ -376,7 +376,7 @@ export const parseJobFromComment = (hit: AlgoliaCommentHit): Job => {
   const salary = parseSalary(plainText);
   const techStack = extractTechKeywords(plainText);
 
-  const url = hit.url ?? `https://news.ycombinator.com/item?id=${hit.story_id}`;
+  const url = hit.url ?? `https://news.ycombinator.com/item?id=${hit.objectID}`;
 
   const tags = buildTags(
     techStack,

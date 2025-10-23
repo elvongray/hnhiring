@@ -48,7 +48,7 @@ export const JobList = () => {
     isError: isMonthError,
     error: monthError,
     refetch: refetchMonths,
-  } = useHiringMonthHistory(24);
+  } = useHiringMonthHistory(6);
 
   const storyMonths = useMemo(() => {
     if (!monthStories || monthStories.length === 0) {
@@ -149,9 +149,7 @@ export const JobList = () => {
 
     return jobs.map((job) => {
       const flags =
-        jobFlags[job.objectId] ??
-        savedJobs[job.objectId]?.flags ??
-        job.flags;
+        jobFlags[job.objectId] ?? savedJobs[job.objectId]?.flags ?? job.flags;
 
       if (flags === job.flags) {
         return job;
@@ -186,12 +184,7 @@ export const JobList = () => {
   );
 
   const displayJobs = useMemo(
-    () =>
-      applyViewFilter(
-        filteredJobs,
-        view,
-        activeStory?.storyId ?? null
-      ),
+    () => applyViewFilter(filteredJobs, view, activeStory?.storyId ?? null),
     [filteredJobs, view, activeStory?.storyId]
   );
 
@@ -227,9 +220,9 @@ export const JobList = () => {
   const headerText =
     view === 'all'
       ? `Showing ${totalJobs}${filteredFragment} parsed postings from ${monthLabel}.`
-      : `Showing ${totalJobs}${filteredFragment} ${describeViewForHeader(view)}${
-          hasActiveFilters ? ' matching your filters' : ''
-        }.`;
+      : `Showing ${totalJobs}${filteredFragment} ${describeViewForHeader(
+          view
+        )}${hasActiveFilters ? ' matching your filters' : ''}.`;
 
   const handleToggleStar = (job: Job) => {
     updateJobFlags(job, { starred: !job.flags.starred });
@@ -397,8 +390,8 @@ const applyViewFilter = (
     case 'applied':
       return jobs.filter((job) => job.flags.applied);
     case 'notes':
-      return jobs.filter(
-        (job) => Boolean(job.flags.notes && job.flags.notes.trim().length > 0)
+      return jobs.filter((job) =>
+        Boolean(job.flags.notes && job.flags.notes.trim().length > 0)
       );
     case 'all':
     default:
