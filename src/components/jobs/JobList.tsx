@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { ChevronDown, RefreshCcw, Search } from 'lucide-react';
+import { ChevronDown, RefreshCcw } from 'lucide-react';
 import { JobCard } from './JobCard.tsx';
 import { Button } from '../ui/Button.tsx';
 import { useAppStore } from '../../store/useAppStore.ts';
