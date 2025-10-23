@@ -33,7 +33,7 @@ jobs:
       - name: Build project
         run: bun run build
         env:
-          VITE_PUBLIC_BASE: /
+          VITE_REPO_NAME: ${{ github.event.repository.name }}
 
       - name: Upload build artifact
         uses: actions/upload-pages-artifact@v3
