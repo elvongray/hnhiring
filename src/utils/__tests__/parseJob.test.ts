@@ -3,7 +3,7 @@ import type { AlgoliaCommentHit } from '../../types/algolia.ts';
 import { htmlToPlainText, parseJobFromComment } from '../parseJob.ts';
 
 const baseHit: AlgoliaCommentHit = {
-  id: '12345',
+  objectID: '12345',
   parent_id: 999,
   story_id: 888,
   story_title: 'Ask HN: Who is hiring? (March 2025)',
@@ -25,7 +25,7 @@ describe('htmlToPlainText', () => {
     expect(htmlToPlainText(html)).toBe(
       'Acme Corp – Senior React Engineer – Berlin / Remote\n' +
         'We build SaaS & handle 100% remote teams.\n' +
-        'Compensation: $140k – $170k.',
+        'Compensation: $140k – $170k.'
     );
   });
 });
@@ -66,7 +66,7 @@ describe('parseJobFromComment', () => {
   it('handles minimal content and returns sensible defaults', () => {
     const hit: AlgoliaCommentHit = {
       ...baseHit,
-      id: '99999',
+      objectID: '99999',
       comment_text: '<p>ExampleCo - Data Scientist</p><p>Location: Remote</p>',
     };
 
@@ -82,4 +82,3 @@ describe('parseJobFromComment', () => {
     expect(job.url).toBe('https://news.ycombinator.com/item?id=99999');
   });
 });
-

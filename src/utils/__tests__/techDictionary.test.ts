@@ -25,4 +25,3 @@ describe('techDictionary', () => {
     expect(TECH_KEYWORDS.length).toBeGreaterThan(10);
   });
 });
-
