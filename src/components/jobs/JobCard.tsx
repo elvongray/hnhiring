@@ -1,6 +1,8 @@
-import { Bookmark, CheckCircle2, ExternalLink, StickyNote } from 'lucide-react';
-import type { ComponentType, ReactNode } from 'react';
+import { CheckCircle2, ExternalLink, StickyNote, Star } from 'lucide-react';
+import type { ComponentType } from 'react';
 import { Badge } from '../ui/Badge.tsx';
+import type { JobFlags } from '../../types/job.ts';
+import { cn } from '../../lib/cn.ts';
 
 export interface JobCardProps {
   title: string;
@@ -10,8 +12,11 @@ export interface JobCardProps {
   snippet: string;
   tags?: string[];
   posted?: string;
-  actions?: ReactNode;
   href?: string;
+  flags: JobFlags;
+  onToggleStar?: () => void;
+  onToggleApplied?: () => void;
+  onEditNotes?: () => void;
 }
 
 export const JobCard = ({
@@ -22,8 +27,11 @@ export const JobCard = ({
   snippet,
   tags,
   posted,
-  actions,
   href,
+  flags,
+  onToggleStar,
+  onToggleApplied,
+  onEditNotes,
 }: JobCardProps) => (
   <article className="group flex flex-col gap-5 rounded-3xl border border-default bg-surface px-6 py-5 transition hover:border-[color:var(--accent)]/40 hover:shadow-soft">
     <header className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -44,9 +52,24 @@ export const JobCard = ({
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <ActionButton icon={Bookmark} label="Bookmark job" />
-        <ActionButton icon={CheckCircle2} label="Mark applied" />
-        <ActionButton icon={StickyNote} label="Add notes" />
+        <ActionButton
+          icon={Star}
+          label={flags.starred ? 'Unstar job' : 'Star job'}
+          active={flags.starred}
+          onClick={onToggleStar}
+        />
+        <ActionButton
+          icon={CheckCircle2}
+          label={flags.applied ? 'Mark not applied' : 'Mark applied'}
+          active={flags.applied}
+          onClick={onToggleApplied}
+        />
+        <ActionButton
+          icon={StickyNote}
+          label={flags.notes ? 'Edit notes' : 'Add notes'}
+          active={Boolean(flags.notes)}
+          onClick={onEditNotes}
+        />
       </div>
     </header>
 
@@ -79,22 +102,42 @@ export const JobCard = ({
           <ExternalLink className="h-4 w-4" />
         </a>
       ) : null}
-      {actions}
     </footer>
+
+    {flags.notes ? (
+      <div className="rounded-2xl border border-[color:var(--accent)]/40 bg-surface-muted px-4 py-3 text-sm text-secondary">
+        {flags.notes}
+      </div>
+    ) : null}
   </article>
 );
 
 interface ActionButtonProps {
   icon: ComponentType<{ className?: string }>;
   label: string;
+  active?: boolean;
+  onClick?: () => void;
 }
 
-const ActionButton = ({ icon: Icon, label }: ActionButtonProps) => (
+const ActionButton = ({
+  icon: Icon,
+  label,
+  active,
+  onClick,
+}: ActionButtonProps) => (
   <button
     type="button"
     aria-label={label}
     title={label}
-    className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent bg-surface-muted text-secondary transition hover:border-[color:var(--accent)]/40 hover:text-[color:var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+    aria-pressed={Boolean(active)}
+    onClick={() => onClick?.()}
+    className={cn(
+      'flex h-9 w-9 items-center justify-center rounded-full border border-transparent',
+      'bg-surface-muted text-secondary transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+      active
+        ? 'border-[color:var(--accent)]/40! text-[color:var(--accent)]!'
+        : 'hover:border-[color:var(--accent)]/40 hover:text-[color:var(--accent)]'
+    )}
   >
     <Icon className="h-4 w-4" aria-hidden="true" />
   </button>
