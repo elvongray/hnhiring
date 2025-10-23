@@ -38,18 +38,18 @@ src/
 ### Prerequisites
 
 - Node.js ≥ 18 (earlier versions cannot run Vite/Vitest)
-- npm ≥ 9 (or pnpm/bun if you adjust the scripts)
+- bun ≥ 1.2.18
 
 ### Installation
 
 ```bash
-npm install
+bun install
 ```
 
-### Development
+bun Development
 
 ```bash
-npm run dev        # Start Vite dev server with HMR
+bun run dev        # Start Vite dev server with HMR
 ```
 
 The app will open at <http://localhost:5173/> by default. Tailwind, React Query Devtools, and HMR are enabled during development.
@@ -57,10 +57,10 @@ The app will open at <http://localhost:5173/> by default. Tailwind, React Query 
 ### Testing & Quality
 
 ```bash
-npm run lint       # ESLint (type-aware)
-npm test           # Vitest in CI mode
-npm run test:watch # Vitest watch mode
-npm run test:coverage
+bun run lint       # ESLint (type-aware)
+bun test           # Vitest in CI mode
+bun run test:watch # Vitest watch mode
+bun run test:coverage
 ```
 
 Unit tests currently focus on the parsing utilities and tech keyword extraction. Add more coverage as you implement parsing heuristics or complex UI logic.
@@ -68,8 +68,8 @@ Unit tests currently focus on the parsing utilities and tech keyword extraction.
 ### Build & Preview
 
 ```bash
-npm run build      # Type-check + Vite production build
-npm run preview    # Serve the production bundle locally
+bun run build      # Type-check + Vite production build
+bun run preview    # Serve the production bundle locally
 ```
 
 ## Deployment
@@ -89,20 +89,12 @@ Structured job objects contain:
 
 Parsing heuristics live in `src/utils/parseJob.ts` and are covered by Vitest specs. The dictionary used for stack detection (`src/utils/techDictionary.ts`) is easily extendable.
 
-## Roadmap
-
-- Fetch month history & cache results with TanStack Query.
-- Implement sidebar + smart search with URL sync.
-- Add job detail interactions (star, apply, notes).
-- Polish UI/UX with responsive layout, animations, and accessibility improvements.
-- Optional analytics (Plausible/Umami) and export/import of local data.
-
 ## Contributing
 
 Contributions are welcome! Please:
 
 1. Fork the repository and create a feature branch.
-2. Run `npm run lint` and `npm test`.
+2. Run `bun run lint` and `bun test`.
 3. Open a pull request describing the change, test coverage, and any UI screenshots if applicable.
 
 ## License

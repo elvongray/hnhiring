@@ -259,18 +259,7 @@ export const JobList = () => {
               : headerText}
           </p>
         </div>
-        <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-          <div className="relative w-full sm:max-w-xs">
-            <Search
-              className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary"
-              aria-hidden="true"
-            />
-            <input
-              type="search"
-              placeholder="Search within results"
-              className="w-full rounded-full border border-default bg-surface-muted py-2 pl-10 pr-4 text-sm text-[color:var(--text-primary)] placeholder:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            />
-          </div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
           <div className="flex w-full items-center gap-2 sm:w-auto">
             <div className="relative flex-1 sm:flex-initial">
               <select

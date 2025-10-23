@@ -21,7 +21,7 @@ export const AppShell = ({
   <div
     className={cn(
       'min-h-screen bg-[color:var(--app-bg)] text-[color:var(--text-primary)]',
-      className,
+      className
     )}
   >
     <div className="relative mx-auto flex min-h-screen w-full max-w-[1440px] flex-col gap-6 px-4 pb-12 pt-6 sm:px-6 lg:px-10">
@@ -40,7 +40,7 @@ export const AppShell = ({
             'relative flex w-full flex-col gap-6',
             sidebarOpen
               ? 'lg:grid lg:grid-cols-[320px,minmax(0,1fr)] lg:gap-8 xl:grid-cols-[340px,minmax(0,1fr)]'
-              : 'lg:grid lg:grid-cols-[minmax(0,1fr)] lg:gap-0',
+              : 'lg:grid lg:grid-cols-[minmax(0,1fr)] lg:gap-0'
           )}
         >
           <aside
@@ -48,7 +48,7 @@ export const AppShell = ({
               'z-40 rounded-3xl border border-default bg-surface shadow-soft ring-1 ring-black/5 transition-all duration-300',
               sidebarOpen
                 ? 'fixed inset-x-4 top-6 max-h-[calc(100vh-3rem)] overflow-y-auto lg:sticky lg:inset-auto lg:top-6 lg:block lg:h-[calc(100vh-6rem)] lg:w-[320px] lg:overflow-y-auto xl:w-[340px]'
-                : 'hidden lg:hidden',
+                : 'hidden lg:hidden'
             )}
           >
             {sidebar}
@@ -56,7 +56,7 @@ export const AppShell = ({
           <main
             className={cn(
               'flex min-h-[60vh] flex-col gap-6 rounded-3xl border border-default bg-surface shadow-soft ring-1 ring-black/5',
-              sidebarOpen ? 'lg:col-start-2' : 'lg:col-start-1',
+              sidebarOpen ? 'lg:col-start-2' : 'lg:col-start-1'
             )}
           >
             {children}

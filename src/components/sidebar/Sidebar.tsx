@@ -1,4 +1,3 @@
-import { Badge } from '../ui/Badge.tsx';
 import { FilterGroup } from './FilterGroup.tsx';
 import { Button } from '../ui/Button.tsx';
 import type { ChangeEvent, ComponentPropsWithoutRef } from 'react';
@@ -55,7 +54,6 @@ export const Sidebar = () => {
     <div className="flex h-full flex-col gap-6 rounded-3xl bg-surface p-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Filters</h2>
-        <Badge tone="outline">Experimental</Badge>
       </div>
 
       <FilterGroup title="Keyword">
